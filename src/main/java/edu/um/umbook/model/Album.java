@@ -1,53 +1,48 @@
 package edu.um.umbook.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
+@NoArgsConstructor
 public class Album {
-    public Album() {}
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(length = 30)
     private String nombre;
+
+    @Column(length = 250)
     private String descripcion;
-    
+
     @ManyToOne
     private Usuario creador;
-    
+
     @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Foto> fotos = new ArrayList<>();
-    
+
     @ManyToMany
-    @JoinTable(name = "album_grupos",
-        joinColumns = @JoinColumn(name = "album_id"),
-        inverseJoinColumns = @JoinColumn(name = "grupo_id"))
-    private List<GrupoAmigos> gruposPermitidos = new ArrayList<>();
+    @JoinTable(name = "album_grupos_visualizacion", joinColumns = @JoinColumn(name = "album_id"), inverseJoinColumns = @JoinColumn(name = "grupo_id"))
+    private List<GrupoAmigos> gruposConPermisoDeVisualizacion = new ArrayList<>();
 
-    public Long getId() { return this.id; }
+    @ManyToMany
+    @JoinTable(name = "album_grupos_comentario", joinColumns = @JoinColumn(name = "album_id"), inverseJoinColumns = @JoinColumn(name = "grupo_id"))
+    private List<GrupoAmigos> gruposConPermisoDeComentario = new ArrayList<>();
 
-    public void setId(Long id) { this.id = id; }
+    public Album(String nombre, String descripcion, Usuario creador) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.creador = creador;
+    }
 
-    public String getNombre() { return this.nombre; }
-
-    public void setNombre(String nombre) { this.nombre = nombre; }
-
-    public String getDescripcion() { return this.descripcion; }
-
-    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-
-    public Usuario getCreador() { return this.creador; }
-
-    public void setCreador(Usuario creador) { this.creador = creador; }
-
-    public List<Foto> getFotos() { return this.fotos; }
-
-    public void setFotos(List<Foto> fotos) { this.fotos = fotos; }
-
-    public List<GrupoAmigos> getGruposPermitidos() { return this.gruposPermitidos; }
-
-    public void setGruposPermitidos(List<GrupoAmigos> gruposPermitidos) { this.gruposPermitidos = gruposPermitidos; }
-
+    public void asignarPermisos(List<GrupoAmigos> gruposVisualizacion, List<GrupoAmigos> gruposComentario) {
+        this.gruposConPermisoDeVisualizacion = new ArrayList<>(gruposVisualizacion);
+        this.gruposConPermisoDeComentario = new ArrayList<>(gruposComentario);
+    }
 }

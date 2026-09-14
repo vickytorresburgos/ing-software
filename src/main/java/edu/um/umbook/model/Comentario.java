@@ -1,50 +1,41 @@
 package edu.um.umbook.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@NoArgsConstructor
 public class Comentario {
-    public Comentario() {}
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(length = 250)
     private String contenido;
-    
+
     @ManyToOne
     private Usuario autor;
-    
+
     @ManyToOne
-    private Foto foto; // null si es en el muro
-    
+    private Foto foto;
+
     @ManyToOne
-    private Usuario muroDestino; // null si es en una foto
-    
+    private Usuario muroDestino;
+
     private LocalDateTime fechaCreacion;
 
-    public Long getId() { return this.id; }
+    public Comentario(String contenido, Foto foto, Usuario autor) {
+        this.contenido = contenido;
+        this.foto = foto;
+        this.autor = autor;
+        this.fechaCreacion = LocalDateTime.now();
+    }
 
-    public void setId(Long id) { this.id = id; }
-
-    public String getContenido() { return this.contenido; }
-
-    public void setContenido(String contenido) { this.contenido = contenido; }
-
-    public Usuario getAutor() { return this.autor; }
-
-    public void setAutor(Usuario autor) { this.autor = autor; }
-
-    public Foto getFoto() { return this.foto; }
-
-    public void setFoto(Foto foto) { this.foto = foto; }
-
-    public Usuario getMuroDestino() { return this.muroDestino; }
-
-    public void setMuroDestino(Usuario muroDestino) { this.muroDestino = muroDestino; }
-
-    public LocalDateTime getFechaCreacion() { return this.fechaCreacion; }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
-
+    public void modificarContenido(String contenido) {
+        this.contenido = contenido;
+    }
 }
