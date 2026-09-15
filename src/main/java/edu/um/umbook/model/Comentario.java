@@ -28,6 +28,9 @@ public class Comentario {
 
     private LocalDateTime fechaCreacion;
 
+    @Enumerated(EnumType.STRING)
+    private ComentarioEstado estado = ComentarioEstado.CREADO;
+
     public Comentario(String contenido, Foto foto, Usuario autor) {
         this.contenido = contenido;
         this.foto = foto;
@@ -37,5 +40,9 @@ public class Comentario {
 
     public void modificarContenido(String contenido) {
         this.contenido = contenido;
+    }
+    
+    public void setEstado(ComentarioEstado estado) {
+        this.estado = estado;
     }
 }

@@ -9,33 +9,8 @@
     />
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-      <div class="container">
-        <a class="navbar-brand" href="/">UMBook</a>
-        <div class="collapse navbar-collapse">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-            <li class="nav-item">
-              <a class="nav-link" href="/friends">Amigos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/groups">Grupos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/albums">Álbumes</a>
-            </li>
-            <li class="nav-item">
-              <form th:action="@{/logout}" method="post">
-                <button type="submit" class="btn btn-link nav-link">
-                  Cerrar Sesión
-                </button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-    <div class="container">
+    <div th:replace="~{base :: nav}"></div>
+    <div class="container mt-4">
       <h2>Mis Amigos</h2>
       <hr />
       <div class="row">

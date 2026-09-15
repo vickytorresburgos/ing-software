@@ -1,23 +1,37 @@
 package edu.um.umbook.service;
+
 import edu.um.umbook.model.Usuario;
+import edu.um.umbook.model.Comentario;
+import edu.um.umbook.model.ComentarioEstado;
 import edu.um.umbook.repository.UsuarioRepository;
+import edu.um.umbook.repository.ComentarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 public class UserService {
     private final UsuarioRepository usuarioRepository;
+    private final ComentarioRepository comentarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
     
-    public UserService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UsuarioRepository usuarioRepository, ComentarioRepository comentarioRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.usuarioRepository = usuarioRepository;
+        this.comentarioRepository = comentarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
     
     public void registerUser(Usuario usuario) {
+        if (usuarioRepository.existsByEmail(usuario.getEmail()) || usuarioRepository.existsByUsername(usuario.getUsername())) {
+            throw new IllegalArgumentException("El email o username ya existe.");
+        }
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+        usuario.setEstado(edu.um.umbook.model.UsuarioEstado.ACTIVO);
         usuarioRepository.save(usuario);
+        emailService.enviarEmailBienvenida(usuario.getEmail());
     }
     
     public Usuario findByUsername(String username) {
@@ -31,5 +45,22 @@ public class UserService {
     public void updateDiasNotificacion(Usuario user, int dias) {
         user.setDiasNotificacionCumple(dias);
         usuarioRepository.save(user);
+    }
+    
+    public void toggleUserStatus(Long userId) {
+        Usuario user = usuarioRepository.findById(userId).orElseThrow();
+        if (user.getEstado() == edu.um.umbook.model.UsuarioEstado.ACTIVO) {
+            user.setEstado(edu.um.umbook.model.UsuarioEstado.DESHABILITADO);
+        } else if (user.getEstado() == edu.um.umbook.model.UsuarioEstado.DESHABILITADO) {
+            user.setEstado(edu.um.umbook.model.UsuarioEstado.ACTIVO);
+        }
+        usuarioRepository.save(user);
+    }
+    
+    public void deleteCommentAsAdmin(Long commentId) {
+        Comentario comentario = comentarioRepository.findById(commentId).orElseThrow();
+        comentario.modificarContenido("El comentario ha sido eliminado por el administrador");
+        comentario.setEstado(ComentarioEstado.ELIMINADO);
+        comentarioRepository.save(comentario);
     }
 }

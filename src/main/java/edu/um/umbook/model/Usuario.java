@@ -17,7 +17,8 @@ public class Usuario {
     @Column(unique = true)
     private String username;
     private String password;
-    private boolean enabled = true;
+    @Enumerated(EnumType.STRING)
+    private UsuarioEstado estado = UsuarioEstado.ACTIVO;
     private int diasNotificacionCumple = 7;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -56,9 +57,9 @@ public class Usuario {
 
     public void setPassword(String password) { this.password = password; }
 
-    public boolean isEnabled() { return this.enabled; }
+    public UsuarioEstado getEstado() { return this.estado; }
 
-    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public void setEstado(UsuarioEstado estado) { this.estado = estado; }
 
     public int getDiasNotificacionCumple() { return this.diasNotificacionCumple; }
 

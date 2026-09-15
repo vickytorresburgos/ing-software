@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -21,7 +22,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/css/**", "/js/**", "/h2-console/**").permitAll()
+                .requestMatchers(new RegexRequestMatcher("/h2-console.*", null)).permitAll()
+                .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -35,8 +37,8 @@ public class SecurityConfig {
                 .permitAll()
             )
             // For H2 console
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+            .csrf(csrf -> csrf.ignoringRequestMatchers(new RegexRequestMatcher("/h2-console.*", null)))
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()));
             
         return http.build();
     }

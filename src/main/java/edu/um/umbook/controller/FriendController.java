@@ -23,7 +23,7 @@ public class FriendController {
     @GetMapping
     public String listFriends(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         Usuario me = userDetails.getUsuario();
-        model.addAttribute("amigos", me.getAmigos());
+        model.addAttribute("amigos", friendService.getAmigosDe(me));
         return "friends";
     }
     

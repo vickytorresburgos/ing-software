@@ -59,4 +59,8 @@ public class FriendService {
         amigoRepository.findByUsuarioAndAmigoUsuario(u1, u2).ifPresent(amigoRepository::delete);
         amigoRepository.findByUsuarioAndAmigoUsuario(u2, u1).ifPresent(amigoRepository::delete);
     }
+
+    public List<Amigo> getAmigosDe(Usuario user) {
+        return amigoRepository.findByUsuario(user);
+    }
 }

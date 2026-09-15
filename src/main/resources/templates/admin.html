@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
@@ -8,42 +8,52 @@
       rel="stylesheet"
     />
   </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-      <div class="container">
-        <a class="navbar-brand" href="/">UMBook Admin</a>
-        <div class="collapse navbar-collapse">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="/">Volver a Inicio</a>
-            </li>
-            <li class="nav-item">
-              <form th:action="@{/logout}" method="post">
-                <button type="submit" class="btn btn-link nav-link">
-                  Cerrar Sesión
-                </button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-    <div class="container">
-      <h2>Panel de Administración</h2>
-      <hr />
-      <div class="row">
-        <div class="col-md-6">
-          <h4>Buscar Usuario para Deshabilitar</h4>
-          <form class="d-flex">
-            <input
-              class="form-control me-2"
-              type="search"
-              placeholder="Nombre o Apellido"
-            />
-            <button class="btn btn-outline-danger" type="submit">Buscar</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </body>
+<body>
+<div th:replace="~{base :: nav}"></div>
+<div class="container mt-4">
+    <h2>Panel de Administración</h2>
+    
+    <div th:if="${param.updated}" class="alert alert-success">Estado de usuario actualizado correctamente.</div>
+    <div th:if="${param.comment_deleted}" class="alert alert-success">Comentario moderado correctamente.</div>
+    
+    <hr>
+    <h4>Buscar Usuarios</h4>
+    <form action="/admin" method="get" class="d-flex mb-4">
+        <input class="form-control me-2" type="search" name="query" placeholder="Buscar por nombre o apellido..." aria-label="Search">
+        <button class="btn btn-outline-primary" type="submit">Buscar</button>
+    </form>
+    
+    <table class="table table-striped" th:if="${usuarios != null}">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="user : ${usuarios}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.username}"></td>
+                <td th:text="${user.nombre + ' ' + user.apellido}"></td>
+                <td th:text="${user.estado}"></td>
+                <td>
+                    <form th:action="@{/admin/usuarios/{id}/toggle(id=${user.id})}" method="post">
+                        <button type="submit" class="btn btn-sm btn-warning" th:text="${user.estado.name() == 'ACTIVO' ? 'Deshabilitar' : 'Habilitar'}"></button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <hr>
+    <h4>Moderación Rápida de Comentarios</h4>
+    <form th:action="@{/admin/comentarios/eliminar}" method="post" class="d-flex w-50">
+        <input class="form-control me-2" type="number" name="commentId" placeholder="ID del Comentario a Eliminar" required>
+        <button class="btn btn-danger" type="submit">Eliminar Comentario</button>
+    </form>
+</div>
+</body>
 </html>

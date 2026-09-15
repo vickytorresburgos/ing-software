@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
@@ -8,38 +8,81 @@
       rel="stylesheet"
     />
   </head>
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-      <div class="container">
-        <a class="navbar-brand" href="/">UMBook</a>
-        <div class="collapse navbar-collapse">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-            <li class="nav-item">
-              <a class="nav-link" href="/friends">Amigos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/groups">Grupos</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/albums">Álbumes</a>
-            </li>
-            <li class="nav-item">
-              <form th:action="@{/logout}" method="post">
-                <button type="submit" class="btn btn-link nav-link">
-                  Cerrar Sesión
-                </button>
-              </form>
-            </li>
-          </ul>
+<body>
+<div th:replace="~{base :: nav}"></div>
+<div class="container mt-4">
+    <h2>Mis Grupos de Amigos</h2>
+    
+    <div th:if="${param.created}" class="alert alert-success">Grupo creado exitosamente.</div>
+    <div th:if="${param.permissions_updated}" class="alert alert-success">Permisos actualizados exitosamente.</div>
+    
+    <button class="btn btn-primary mb-3" data-bs-toggle="collapse" data-bs-target="#newGroupForm">Crear Nuevo Grupo</button>
+    
+    <div class="collapse mb-4" id="newGroupForm">
+        <div class="card card-body">
+            <form action="/groups" method="post">
+                <div class="mb-3">
+                    <label>Nombre del Grupo</label>
+                    <input type="text" name="nombre" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label>Descripción</label>
+                    <textarea name="descripcion" class="form-control" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label>Seleccionar Amigos</label>
+                    <select multiple class="form-select" name="amigosIds">
+                        <option th:each="amigo : ${misAmigos}" th:value="${amigo.id}" th:text="${amigo.amigoUsuario.nombre + ' ' + amigo.amigoUsuario.apellido}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Guardar Grupo</button>
+            </form>
         </div>
-      </div>
-    </nav>
-    <div class="container">
-      <h2>Mis Grupos de Amigos</h2>
-      <button class="btn btn-success mb-3">Nuevo Grupo de Amigos</button>
-      <hr />
-      <p class="text-muted">Aún no tienes grupos creados.</p>
     </div>
-  </body>
+    
+    <div class="row">
+        <div class="col-md-6" th:each="grupo : ${grupos}">
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white" th:text="${grupo.nombre}"></div>
+                <div class="card-body">
+                    <p th:text="${grupo.descripcion}"></p>
+                    <h6>Miembros:</h6>
+                    <ul>
+                        <li th:each="miembro : ${grupo.miembros}" th:text="${miembro.amigoUsuario.nombre}"></li>
+                    </ul>
+                    <hr>
+                    <h6>Configurar Permisos (Album/Muro)</h6>
+                    <form action="/permisos" method="post">
+                        <input type="hidden" name="grupoId" th:value="${grupo.id}">
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <input type="number" name="objetoId" class="form-control" placeholder="ID de Objeto (Album/Muro)" required>
+                            </div>
+                            <div class="col-6">
+                                <select name="tipoObjeto" class="form-select" required>
+                                    <option value="ALBUM">Álbum</option>
+                                    <option value="MURO">Muro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="permisos" value="VER">
+                            <label class="form-check-label">VER</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="permisos" value="COMENTAR">
+                            <label class="form-check-label">COMENTAR</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="permisos" value="AGREGAR_FOTO">
+                            <label class="form-check-label">AGREGAR_FOTO</label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-info mt-2">Aplicar Permisos</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
 </html>

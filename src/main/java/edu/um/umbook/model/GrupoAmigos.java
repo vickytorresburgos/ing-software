@@ -12,6 +12,7 @@ public class GrupoAmigos {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nombre;
+    private String descripcion;
 
     @ManyToOne
     private Usuario usuario;
@@ -22,9 +23,7 @@ public class GrupoAmigos {
         inverseJoinColumns = @JoinColumn(name = "amigo_id"))
     private List<Amigo> miembros = new ArrayList<>();
     
-    private boolean puedeVerAlbum = false;
-    private boolean puedeComentarAlbum = false;
-    private boolean puedeComentarMuro = false;
+    
 
     public Long getId() { return this.id; }
 
@@ -32,7 +31,11 @@ public class GrupoAmigos {
 
     public String getNombre() { return this.nombre; }
 
+    public String getDescripcion() { return this.descripcion; }
+
     public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
     public Usuario getUsuario() { return this.usuario; }
 
@@ -42,16 +45,5 @@ public class GrupoAmigos {
 
     public void setMiembros(List<Amigo> miembros) { this.miembros = miembros; }
 
-    public boolean isPuedeVerAlbum() { return this.puedeVerAlbum; }
-
-    public void setPuedeVerAlbum(boolean puedeVerAlbum) { this.puedeVerAlbum = puedeVerAlbum; }
-
-    public boolean isPuedeComentarAlbum() { return this.puedeComentarAlbum; }
-
-    public void setPuedeComentarAlbum(boolean puedeComentarAlbum) { this.puedeComentarAlbum = puedeComentarAlbum; }
-
-    public boolean isPuedeComentarMuro() { return this.puedeComentarMuro; }
-
-    public void setPuedeComentarMuro(boolean puedeComentarMuro) { this.puedeComentarMuro = puedeComentarMuro; }
 
 }

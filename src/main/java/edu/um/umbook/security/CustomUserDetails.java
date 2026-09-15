@@ -1,6 +1,7 @@
 package edu.um.umbook.security;
 
 import edu.um.umbook.model.Usuario;
+import edu.um.umbook.model.UsuarioEstado;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -45,5 +46,5 @@ public class CustomUserDetails implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return usuario.isEnabled(); }
+    public boolean isEnabled() { return usuario.getEstado() == UsuarioEstado.ACTIVO; }
 }
