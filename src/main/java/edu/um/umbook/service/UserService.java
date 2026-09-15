@@ -42,6 +42,10 @@ public class UserService {
         return usuarioRepository.findByNombreContainingIgnoreCaseOrApellidoContainingIgnoreCase(query, query);
     }
     
+    public Usuario findById(Long id) {
+        return usuarioRepository.findById(id).orElse(null);
+    }
+    
     public void updateDiasNotificacion(Usuario user, int dias) {
         user.setDiasNotificacionCumple(dias);
         usuarioRepository.save(user);

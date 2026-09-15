@@ -22,6 +22,16 @@ public class FriendService {
     }
     
     public void sendRequest(Usuario solicitante, Usuario receptor) {
+        if (amigoRepository.existsByUsuarioAndAmigoUsuario(solicitante, receptor)) {
+            return; // Ya son amigos
+        }
+        if (solicitudRepository.existsBySolicitanteAndReceptorAndEstado(solicitante, receptor, "PENDING")) {
+            return; // Ya hay solicitud pendiente
+        }
+        if (solicitudRepository.existsBySolicitanteAndReceptorAndEstado(receptor, solicitante, "PENDING")) {
+            return; // El otro usuario ya le envió solicitud
+        }
+
         SolicitudAmistad solicitud = SolicitudAmistadFactory.createSolicitud(solicitante, receptor);
         solicitudRepository.save(solicitud);
         notificationService.update(receptor, solicitante.getNombre() + " te ha enviado una solicitud de amistad.");
@@ -29,26 +39,36 @@ public class FriendService {
     
     public void acceptRequest(Long solicitudId) {
         SolicitudAmistad solicitud = solicitudRepository.findById(solicitudId).orElseThrow();
+        if ("ACCEPTED".equals(solicitud.getEstado())) {
+            return; // Ya fue aceptada
+        }
         SolicitudAmistadStateContext context = new SolicitudAmistadStateContext(solicitud);
         context.setState(new AcceptedState());
         context.handle(solicitud);
         solicitudRepository.save(solicitud);
         
-        Amigo a1 = new Amigo();
-        a1.setUsuario(solicitud.getSolicitante());
-        a1.setAmigoUsuario(solicitud.getReceptor());
-        a1.setFechaAmistad(LocalDate.now());
-        amigoRepository.save(a1);
+        if (!amigoRepository.existsByUsuarioAndAmigoUsuario(solicitud.getSolicitante(), solicitud.getReceptor())) {
+            Amigo a1 = new Amigo();
+            a1.setUsuario(solicitud.getSolicitante());
+            a1.setAmigoUsuario(solicitud.getReceptor());
+            a1.setFechaAmistad(LocalDate.now());
+            amigoRepository.save(a1);
+        }
         
-        Amigo a2 = new Amigo();
-        a2.setUsuario(solicitud.getReceptor());
-        a2.setAmigoUsuario(solicitud.getSolicitante());
-        a2.setFechaAmistad(LocalDate.now());
-        amigoRepository.save(a2);
+        if (!amigoRepository.existsByUsuarioAndAmigoUsuario(solicitud.getReceptor(), solicitud.getSolicitante())) {
+            Amigo a2 = new Amigo();
+            a2.setUsuario(solicitud.getReceptor());
+            a2.setAmigoUsuario(solicitud.getSolicitante());
+            a2.setFechaAmistad(LocalDate.now());
+            amigoRepository.save(a2);
+        }
     }
     
     public void rejectRequest(Long solicitudId) {
         SolicitudAmistad solicitud = solicitudRepository.findById(solicitudId).orElseThrow();
+        if (!"PENDING".equals(solicitud.getEstado())) {
+            return;
+        }
         SolicitudAmistadStateContext context = new SolicitudAmistadStateContext(solicitud);
         context.setState(new RejectedState());
         context.handle(solicitud);
@@ -56,11 +76,28 @@ public class FriendService {
     }
     
     public void removeFriend(Usuario u1, Usuario u2) {
-        amigoRepository.findByUsuarioAndAmigoUsuario(u1, u2).ifPresent(amigoRepository::delete);
-        amigoRepository.findByUsuarioAndAmigoUsuario(u2, u1).ifPresent(amigoRepository::delete);
+        amigoRepository.findByUsuarioAndAmigoUsuario(u1, u2).forEach(amigoRepository::delete);
+        amigoRepository.findByUsuarioAndAmigoUsuario(u2, u1).forEach(amigoRepository::delete);
     }
 
     public List<Amigo> getAmigosDe(Usuario user) {
         return amigoRepository.findByUsuario(user);
+    }
+
+    public List<SolicitudAmistad> getReceivedRequests(Usuario user) {
+        return solicitudRepository.findByReceptorAndEstado(user, "PENDING");
+    }
+
+    public String getFriendshipStatus(Usuario me, Usuario other) {
+        if (amigoRepository.existsByUsuarioAndAmigoUsuario(me, other)) {
+            return "AMIGO";
+        }
+        if (solicitudRepository.existsBySolicitanteAndReceptorAndEstado(me, other, "PENDING")) {
+            return "PENDIENTE_ENVIADA";
+        }
+        if (solicitudRepository.existsBySolicitanteAndReceptorAndEstado(other, me, "PENDING")) {
+            return "PENDIENTE_RECIBIDA";
+        }
+        return "NADA";
     }
 }

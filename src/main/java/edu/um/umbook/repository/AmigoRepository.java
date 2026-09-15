@@ -6,5 +6,6 @@ import java.util.List;
 import java.util.Optional;
 public interface AmigoRepository extends JpaRepository<Amigo, Long> {
     List<Amigo> findByUsuario(Usuario usuario);
-    Optional<Amigo> findByUsuarioAndAmigoUsuario(Usuario usuario, Usuario amigo);
+    List<Amigo> findByUsuarioAndAmigoUsuario(Usuario usuario, Usuario amigo);
+    boolean existsByUsuarioAndAmigoUsuario(Usuario usuario, Usuario amigo);
 }
