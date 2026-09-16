@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .requestMatchers(new RegexRequestMatcher("/h2-console.*", null)).permitAll()
                 .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/friends/**", "/groups/**", "/albums/**", "/wall/**", "/permisos/**", "/profile/**").hasRole("USER")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

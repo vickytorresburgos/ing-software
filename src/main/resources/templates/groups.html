@@ -3,27 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <title>UMBook - Grupos</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   </head>
 <body>
 <div th:replace="~{base :: nav}"></div>
 <div class="container mt-4">
     <h2>Mis Grupos de Amigos</h2>
     
-    <div th:if="${param.created}" class="alert alert-success">Grupo creado exitosamente.</div>
-    <div th:if="${param.permissions_updated}" class="alert alert-success">Permisos actualizados exitosamente.</div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
     
-    <button class="btn btn-primary mb-3" data-bs-toggle="collapse" data-bs-target="#newGroupForm">Crear Nuevo Grupo</button>
+    <button class="btn btn-primary mb-3" data-bs-toggle="collapse" data-bs-target="#newGroupForm">Nuevo Grupo de Amigos</button>
     
     <div class="collapse mb-4" id="newGroupForm">
         <div class="card card-body">
             <form action="/groups" method="post">
                 <div class="mb-3">
                     <label>Nombre del Grupo</label>
-                    <input type="text" name="nombre" class="form-control" required>
+                    <input type="text" name="nombre" class="form-control" maxlength="100" required>
                 </div>
                 <div class="mb-3">
                     <label>Descripción</label>
@@ -31,58 +29,140 @@
                 </div>
                 <div class="mb-3">
                     <label>Seleccionar Amigos</label>
-                    <select multiple class="form-select" name="amigosIds">
-                        <option th:each="amigo : ${misAmigos}" th:value="${amigo.id}" th:text="${amigo.amigoUsuario.nombre + ' ' + amigo.amigoUsuario.apellido}"></option>
-                    </select>
+                    <div th:if="${misAmigos == null or misAmigos.isEmpty()}" class="alert alert-warning">
+                        Todavía no tienes ningún amigo agregado.
+                    </div>
+                    <div th:if="${misAmigos != null and !misAmigos.isEmpty()}">
+                        <input type="text" id="friendSearch" class="form-control mb-2" placeholder="Buscar amigo..." onkeyup="filterFriends()">
+                        <div style="max-height: 150px; overflow-y: auto;" id="friendList">
+                            <div class="form-check friend-item" th:each="amigo : ${misAmigos}">
+                                <input class="form-check-input" type="checkbox" name="amigosIds" th:value="${amigo.id}">
+                                <label class="form-check-label friend-name" th:text="${amigo.amigoUsuario.nombre + ' ' + amigo.amigoUsuario.apellido}"></label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-success">Guardar Grupo</button>
+                <button type="submit" class="btn btn-success">Crear grupo de Amigos</button>
             </form>
         </div>
+    </div>
+    
+    <div th:if="${grupos == null or grupos.isEmpty()}" class="alert alert-info">
+        Todavía no tienes ningún grupo de amigos creado.
     </div>
     
     <div class="row">
         <div class="col-md-6" th:each="grupo : ${grupos}">
             <div class="card mb-3">
-                <div class="card-header bg-dark text-white" th:text="${grupo.nombre}"></div>
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <span th:text="${grupo.nombre}"></span>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" th:attr="data-bs-target='#permisosModal-' + ${grupo.id}" title="Modificar Permisos">
+                        <i class="fa fa-plus text-primary"></i>
+                    </button>
+                </div>
                 <div class="card-body">
                     <p th:text="${grupo.descripcion}"></p>
-                    <h6>Miembros:</h6>
+                    <h6>Miembros: <span class="badge bg-secondary" th:text="${grupo.miembros.size()}"></span></h6>
                     <ul>
-                        <li th:each="miembro : ${grupo.miembros}" th:text="${miembro.amigoUsuario.nombre}"></li>
+                        <li th:each="miembro : ${grupo.miembros}" th:text="${miembro.amigoUsuario.nombre + ' ' + miembro.amigoUsuario.apellido}"></li>
                     </ul>
-                    <hr>
-                    <h6>Configurar Permisos (Album/Muro)</h6>
-                    <form action="/permisos" method="post">
-                        <input type="hidden" name="grupoId" th:value="${grupo.id}">
-                        <div class="row mb-2">
-                            <div class="col-6">
-                                <input type="number" name="objetoId" class="form-control" placeholder="ID de Objeto (Album/Muro)" required>
-                            </div>
-                            <div class="col-6">
-                                <select name="tipoObjeto" class="form-select" required>
-                                    <option value="ALBUM">Álbum</option>
-                                    <option value="MURO">Muro</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="permisos" value="VER">
-                            <label class="form-check-label">VER</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="permisos" value="COMENTAR">
-                            <label class="form-check-label">COMENTAR</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="permisos" value="AGREGAR_FOTO">
-                            <label class="form-check-label">AGREGAR_FOTO</label>
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-info mt-2">Aplicar Permisos</button>
-                    </form>
                 </div>
             </div>
+
+            <!-- Modal Permisos -->
+            <div class="modal fade" th:id="'permisosModal-' + ${grupo.id}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="/permisos" method="post">
+                            <input type="hidden" name="grupoId" th:value="${grupo.id}">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Modificar permisos del grupo</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label>ID del Objeto a dar permiso (Álbum/Muro del usuario)</label>
+                                    <input type="number" name="objetoId" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label>Tipo de Permiso</label>
+                                    <select name="tipoObjeto" class="form-select" id="tipoObjetoSelect" onchange="togglePermisos(this)">
+                                        <option value="ALBUM">Álbum</option>
+                                        <option value="MURO">Muro</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="permisos-album">
+                                    <h6>Permisos de Álbum</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="permisos" value="VER">
+                                        <label class="form-check-label">VER</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="permisos" value="COMENTAR">
+                                        <label class="form-check-label">COMENTAR</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="permisos" value="AGREGAR_FOTO">
+                                        <label class="form-check-label">AGREGAR_FOTO</label>
+                                    </div>
+                                </div>
+                                
+                                <div class="permisos-muro" style="display:none;">
+                                    <h6>Permisos de Muro</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="permisos" value="COMENTAR" required>
+                                        <label class="form-check-label">Permitir</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="permisos" value="" checked>
+                                        <label class="form-check-label">No Permitir</label>
+                                    </div>
+                                </div>
+                                
+                                <hr>
+                                <h6>Permisos Otorgados Actualmente:</h6>
+                                <ul>
+                                    <li th:each="permiso : ${grupo.permisos}" th:text="${permiso.tipoObjeto + ' ID ' + permiso.objetoId + ': ' + permiso.permiso}"></li>
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Confirmar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- End Modal -->
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function filterFriends() {
+        var input = document.getElementById("friendSearch").value.toLowerCase();
+        var items = document.getElementsByClassName("friend-item");
+        for (var i = 0; i < items.length; i++) {
+            var label = items[i].getElementsByClassName("friend-name")[0].innerText.toLowerCase();
+            if (label.indexOf(input) > -1) {
+                items[i].style.display = "";
+            } else {
+                items[i].style.display = "none";
+            }
+        }
+    }
+    
+    function togglePermisos(selectObj) {
+        var modalBody = selectObj.closest('.modal-body');
+        if (selectObj.value === 'ALBUM') {
+            modalBody.querySelector('.permisos-album').style.display = 'block';
+            modalBody.querySelector('.permisos-muro').style.display = 'none';
+        } else {
+            modalBody.querySelector('.permisos-album').style.display = 'none';
+            modalBody.querySelector('.permisos-muro').style.display = 'block';
+        }
+    }
+</script>
 </body>
 </html>

@@ -7,6 +7,8 @@ import edu.um.umbook.pattern.state.AcceptedState;
 import edu.um.umbook.pattern.state.RejectedState;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.time.MonthDay;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -34,7 +36,7 @@ public class FriendService {
 
         SolicitudAmistad solicitud = SolicitudAmistadFactory.createSolicitud(solicitante, receptor);
         solicitudRepository.save(solicitud);
-        notificationService.update(receptor, solicitante.getNombre() + " te ha enviado una solicitud de amistad.");
+        notificationService.notifyUser(receptor, solicitante.getNombre() + " te ha enviado una solicitud de amistad.");
     }
     
     public void acceptRequest(Long solicitudId) {
@@ -78,6 +80,23 @@ public class FriendService {
     public void removeFriend(Usuario u1, Usuario u2) {
         amigoRepository.findByUsuarioAndAmigoUsuario(u1, u2).forEach(amigoRepository::delete);
         amigoRepository.findByUsuarioAndAmigoUsuario(u2, u1).forEach(amigoRepository::delete);
+    }
+    
+    public List<Usuario> getCumpleanosProximos(Usuario usuario) {
+        List<Amigo> amigos = amigoRepository.findByUsuario(usuario);
+        LocalDate hoy = LocalDate.now();
+        return amigos.stream()
+            .map(Amigo::getAmigoUsuario)
+            .filter(a -> a.getFechaNacimiento() != null)
+            .filter(a -> {
+                LocalDate bday = a.getFechaNacimiento();
+                LocalDate bdayThisYear = bday.withYear(hoy.getYear());
+                if (bdayThisYear.isBefore(hoy)) {
+                    bdayThisYear = bdayThisYear.plusYears(1);
+                }
+                return !bdayThisYear.isAfter(hoy.plusDays(usuario.getDiasNotificacionCumple()));
+            })
+            .toList();
     }
 
     public List<Amigo> getAmigosDe(Usuario user) {

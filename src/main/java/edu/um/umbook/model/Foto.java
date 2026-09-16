@@ -15,10 +15,11 @@ public class Foto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Lob
-    private byte[] contenido;
+    private String url;
+    private String titulo;
 
     private String contentType;
+    private java.time.LocalDateTime fechaSubida;
 
     @ManyToOne
     private Album album;
@@ -26,9 +27,11 @@ public class Foto {
     @OneToMany(mappedBy = "foto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comentario> comentarios = new ArrayList<>();
 
-    public Foto(byte[] contenido, String contentType, Album album) {
-        this.contenido = contenido;
+    public Foto(String url, String titulo, String contentType, Album album) {
+        this.url = url;
+        this.titulo = titulo;
         this.contentType = contentType;
         this.album = album;
+        this.fechaSubida = java.time.LocalDateTime.now();
     }
 }

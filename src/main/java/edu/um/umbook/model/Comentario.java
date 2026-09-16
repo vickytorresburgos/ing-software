@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@lombok.Setter
 @NoArgsConstructor
 public class Comentario {
     @Id

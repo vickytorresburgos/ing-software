@@ -34,7 +34,7 @@ public class PermisoService {
         }
         
         for (Amigo miembro : grupo.getMiembros()) {
-            notificationService.update(miembro.getAmigoUsuario(), "Permisos actualizados para el grupo " + grupo.getNombre());
+            notificationService.notifyUser(miembro.getAmigoUsuario(), "Permisos actualizados para el grupo " + grupo.getNombre());
         }
     }
 }

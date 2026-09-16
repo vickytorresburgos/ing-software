@@ -27,7 +27,7 @@ public class GroupService {
         grupoRepository.save(grupo);
         
         for (Amigo miembro : miembros) {
-            notificationService.update(miembro.getAmigoUsuario(), "Has sido agregado al grupo " + nombre);
+            notificationService.notifyUser(miembro.getAmigoUsuario(), "Has sido agregado al grupo " + nombre);
         }
     }
     

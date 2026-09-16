@@ -3,9 +3,13 @@ package edu.um.umbook.model;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.time.LocalDate;
+import edu.um.umbook.pattern.observer.Subject;
+import edu.um.umbook.pattern.observer.Observer;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Entity
-public class Usuario {
+public class Usuario implements Subject {
     public Usuario() {}
 
     @Id
@@ -17,9 +21,15 @@ public class Usuario {
     @Column(unique = true)
     private String username;
     private String password;
+    private String rol = "ROLE_USER";
     @Enumerated(EnumType.STRING)
     private UsuarioEstado estado = UsuarioEstado.ACTIVO;
     private int diasNotificacionCumple = 7;
+    private LocalDate fechaNacimiento;
+    @jakarta.persistence.Transient
+    private transient List<Observer> observers = new CopyOnWriteArrayList<>();
+    @jakarta.persistence.Lob
+    private byte[] fotoPerfil;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Amigo> amigos = new ArrayList<>();
@@ -32,6 +42,35 @@ public class Usuario {
 
     @OneToMany(mappedBy = "destinatario", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notificacion> notificaciones = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(name = "usuario_muro_permisos",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "grupo_id"))
+    private List<GrupoAmigos> gruposConPermisoEnMuro = new ArrayList<>();
+
+    
+    @Override
+    public void attach(Observer o) {
+        if (observers == null) observers = new CopyOnWriteArrayList<>();
+        if (!observers.contains(o)) {
+            observers.add(o);
+        }
+    }
+
+    @Override
+    public void detach(Observer o) {
+        if (observers != null) observers.remove(o);
+    }
+
+    @Override
+    public void notifyObservers(String event) {
+        if (observers != null) {
+            for (Observer o : observers) {
+                o.update(event, this);
+            }
+        }
+    }
 
     public Long getId() { return this.id; }
 
@@ -57,6 +96,10 @@ public class Usuario {
 
     public void setPassword(String password) { this.password = password; }
 
+    public String getRol() { return this.rol; }
+    public void setRol(String rol) { this.rol = rol; }
+
+
     public UsuarioEstado getEstado() { return this.estado; }
 
     public void setEstado(UsuarioEstado estado) { this.estado = estado; }
@@ -64,6 +107,14 @@ public class Usuario {
     public int getDiasNotificacionCumple() { return this.diasNotificacionCumple; }
 
     public void setDiasNotificacionCumple(int diasNotificacionCumple) { this.diasNotificacionCumple = diasNotificacionCumple; }
+
+    public LocalDate getFechaNacimiento() { return this.fechaNacimiento; }
+
+    public void setFechaNacimiento(LocalDate fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+
+    public byte[] getFotoPerfil() { return this.fotoPerfil; }
+
+    public void setFotoPerfil(byte[] fotoPerfil) { this.fotoPerfil = fotoPerfil; }
 
     public List<Amigo> getAmigos() { return this.amigos; }
 
@@ -76,6 +127,9 @@ public class Usuario {
     public List<Album> getAlbumes() { return this.albumes; }
 
     public void setAlbumes(List<Album> albumes) { this.albumes = albumes; }
+
+    public List<GrupoAmigos> getGruposConPermisoEnMuro() { return this.gruposConPermisoEnMuro; }
+    public void setGruposConPermisoEnMuro(List<GrupoAmigos> gruposConPermisoEnMuro) { this.gruposConPermisoEnMuro = gruposConPermisoEnMuro; }
 
     public List<Notificacion> getNotificaciones() { return this.notificaciones; }
 

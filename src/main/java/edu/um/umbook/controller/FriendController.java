@@ -35,7 +35,7 @@ public class FriendController {
         Usuario me = userDetails.getUsuario();
         if (q != null && !q.isEmpty()) {
             List<Usuario> resultados = userService.searchUsers(q).stream()
-                .filter(u -> !u.getId().equals(me.getId()))
+                .filter(u -> !u.getId().equals(me.getId()) && !"ROLE_ADMIN".equals(u.getRol()))
                 .toList();
             model.addAttribute("usuarios", resultados);
             

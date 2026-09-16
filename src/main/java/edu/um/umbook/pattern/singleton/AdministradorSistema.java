@@ -1,8 +1,9 @@
 package edu.um.umbook.pattern.singleton;
 
-import org.springframework.stereotype.Component;
+import edu.um.umbook.model.Usuario;
+import edu.um.umbook.model.Comentario;
+import edu.um.umbook.model.ComentarioEstado;
 
-@Component
 public class AdministradorSistema {
     private static AdministradorSistema instance;
     
@@ -15,7 +16,16 @@ public class AdministradorSistema {
         return instance;
     }
     
-    public void disableUser(Long userId) {
-        // Logging or logic
+    public void deshabilitarUsuario(Usuario user) {
+        if (user.getEstado() == edu.um.umbook.model.UsuarioEstado.ACTIVO) {
+            user.setEstado(edu.um.umbook.model.UsuarioEstado.DESHABILITADO);
+        } else if (user.getEstado() == edu.um.umbook.model.UsuarioEstado.DESHABILITADO) {
+            user.setEstado(edu.um.umbook.model.UsuarioEstado.ACTIVO);
+        }
+    }
+
+    public void eliminarComentario(Comentario comentario) {
+        comentario.modificarContenido("El comentario ha sido eliminado por el administrador");
+        comentario.setEstado(ComentarioEstado.ELIMINADO);
     }
 }

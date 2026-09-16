@@ -3,10 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <title>UMBook - Admin</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   </head>
 <body>
 <div th:replace="~{base :: nav}"></div>
@@ -16,44 +14,138 @@
     <div th:if="${param.updated}" class="alert alert-success">Estado de usuario actualizado correctamente.</div>
     <div th:if="${param.comment_deleted}" class="alert alert-success">Comentario moderado correctamente.</div>
     
-    <hr>
-    <h4>Buscar Usuarios</h4>
-    <form action="/admin" method="get" class="d-flex mb-4">
-        <input class="form-control me-2" type="search" name="query" placeholder="Buscar por nombre o apellido..." aria-label="Search">
-        <button class="btn btn-outline-primary" type="submit">Buscar</button>
-    </form>
-    
-    <table class="table table-striped" th:if="${usuarios != null}">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Nombre</th>
-                <th>Estado</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="user : ${usuarios}">
-                <td th:text="${user.id}"></td>
-                <td th:text="${user.username}"></td>
-                <td th:text="${user.nombre + ' ' + user.apellido}"></td>
-                <td th:text="${user.estado}"></td>
-                <td>
-                    <form th:action="@{/admin/usuarios/{id}/toggle(id=${user.id})}" method="post">
-                        <button type="submit" class="btn btn-sm btn-warning" th:text="${user.estado.name() == 'ACTIVO' ? 'Deshabilitar' : 'Habilitar'}"></button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    
-    <hr>
-    <h4>Moderación Rápida de Comentarios</h4>
-    <form th:action="@{/admin/comentarios/eliminar}" method="post" class="d-flex w-50">
-        <input class="form-control me-2" type="number" name="commentId" placeholder="ID del Comentario a Eliminar" required>
-        <button class="btn btn-danger" type="submit">Eliminar Comentario</button>
-    </form>
+    <!-- Pestañas -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tab == 'usuarios' ? 'active' : ''}" href="?tab=usuarios">Usuarios</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${tab == 'comentarios' ? 'active' : ''}" href="?tab=comentarios">Comentarios</a>
+        </li>
+    </ul>
+
+    <!-- Tab Usuarios -->
+    <div th:if="${tab == 'usuarios'}">
+        <h4>Buscar Usuarios</h4>
+        <form action="/admin" method="get" class="d-flex mb-4">
+            <input type="hidden" name="tab" value="usuarios">
+            <input class="form-control me-2" type="search" name="query" placeholder="Buscar por nombre o apellido..." aria-label="Search" required>
+            <button class="btn btn-outline-primary" type="submit"><i class="fa fa-search"></i></button>
+        </form>
+
+        <div th:if="${usuarios != null and usuarios.isEmpty()}" class="alert alert-warning">
+            El nombre o apellido de Usuario buscado no es similar al de ningún Usuario existente en el sistema.
+        </div>
+        
+        <table class="table table-striped" th:if="${usuarios != null and !usuarios.isEmpty()}">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${usuarios}">
+                    <td th:text="${user.id}"></td>
+                    <td th:text="${user.username}"></td>
+                    <td th:text="${user.nombre + ' ' + user.apellido}"></td>
+                    <td th:text="${user.estado}"></td>
+                    <td>
+                        <form th:action="@{/admin/usuarios/{id}/toggle(id=${user.id})}" method="post" class="confirm-form">
+                            <button type="submit" class="btn btn-sm btn-light" title="Modificar Estado">
+                                <i class="fa fa-times text-danger" th:if="${user.estado.name() == 'ACTIVO'}"></i>
+                                <i class="fa fa-check text-success" th:if="${user.estado.name() != 'ACTIVO'}"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tab Comentarios -->
+    <div th:if="${tab == 'comentarios'}">
+        <h4>Buscar Comentarios</h4>
+        <form action="/admin" method="get" class="d-flex mb-4">
+            <input type="hidden" name="tab" value="comentarios">
+            <input class="form-control me-2" type="search" name="queryComentario" placeholder="Buscar por contenido del comentario..." aria-label="Search" required>
+            <button class="btn btn-outline-primary" type="submit"><i class="fa fa-search"></i></button>
+        </form>
+
+        <div th:if="${comentariosBuscados != null and comentariosBuscados.isEmpty()}" class="alert alert-warning">
+            El contenido buscado no es similar al de ningún comentario existente en el sistema.
+        </div>
+
+        <table class="table table-striped" th:if="${comentariosBuscados != null and !comentariosBuscados.isEmpty()}">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Autor</th>
+                    <th>Contenido</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="com : ${comentariosBuscados}">
+                    <td th:text="${com.id}"></td>
+                    <td th:text="${com.autor.nombre + ' ' + com.autor.apellido}"></td>
+                    <td th:text="${com.contenido}"></td>
+                    <td th:text="${com.estado}"></td>
+                    <td>
+                        <form th:action="@{/admin/comentarios/eliminar}" method="post" th:if="${com.estado.name() != 'ELIMINADO'}" class="confirm-form">
+                            <input type="hidden" name="commentId" th:value="${com.id}">
+                            <button type="submit" class="btn btn-sm btn-light" title="Eliminar Comentario">
+                                <i class="fa fa-times text-danger"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<!-- Modal de Confirmación Generico -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Confirmación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de que desea realizar esta acción?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="confirmModalBtn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let formToSubmit = null;
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+    document.querySelectorAll('.confirm-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            formToSubmit = this;
+            confirmModal.show();
+        });
+    });
+
+    document.getElementById('confirmModalBtn').addEventListener('click', function() {
+        if (formToSubmit) {
+            formToSubmit.submit();
+        }
+    });
+</script>
 </body>
 </html>

@@ -7,6 +7,7 @@ import edu.um.umbook.repository.UsuarioRepository;
 import edu.um.umbook.repository.ComentarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import edu.um.umbook.pattern.singleton.AdministradorSistema;
 
 import java.util.List;
 
@@ -53,18 +54,13 @@ public class UserService {
     
     public void toggleUserStatus(Long userId) {
         Usuario user = usuarioRepository.findById(userId).orElseThrow();
-        if (user.getEstado() == edu.um.umbook.model.UsuarioEstado.ACTIVO) {
-            user.setEstado(edu.um.umbook.model.UsuarioEstado.DESHABILITADO);
-        } else if (user.getEstado() == edu.um.umbook.model.UsuarioEstado.DESHABILITADO) {
-            user.setEstado(edu.um.umbook.model.UsuarioEstado.ACTIVO);
-        }
+        AdministradorSistema.getInstance().deshabilitarUsuario(user);
         usuarioRepository.save(user);
     }
     
     public void deleteCommentAsAdmin(Long commentId) {
         Comentario comentario = comentarioRepository.findById(commentId).orElseThrow();
-        comentario.modificarContenido("El comentario ha sido eliminado por el administrador");
-        comentario.setEstado(ComentarioEstado.ELIMINADO);
+        AdministradorSistema.getInstance().eliminarComentario(comentario);
         comentarioRepository.save(comentario);
     }
 }

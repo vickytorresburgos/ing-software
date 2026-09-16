@@ -4,6 +4,10 @@ import edu.um.umbook.exception.FormatoDeFotoInvalidoException;
 import edu.um.umbook.exception.FotosNoSeleccionadasException;
 import edu.um.umbook.model.Album;
 import edu.um.umbook.model.Foto;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 import edu.um.umbook.model.Usuario;
 import edu.um.umbook.repository.FotoRepository;
 import java.io.IOException;
@@ -37,26 +41,33 @@ public class FotoService {
     List<String> comentarios
   ) {
     if (archivos == null) return;
-    for (int indice = 0; indice < archivos.size(); indice++) {
-      MultipartFile archivo = archivos.get(indice);
-      if (archivo == null || archivo.isEmpty()) continue;
-      try {
-        byte[] contenido = archivo.getBytes();
-        if (
-          !esJpeg(archivo.getContentType(), contenido)
-        ) throw new FormatoDeFotoInvalidoException(
-          "Solo se permiten imágenes JPEG."
-        );
-        Foto foto = new Foto(contenido, MediaType.IMAGE_JPEG_VALUE, album);
-        fotoRepository.save(foto);
-        comentarioService.guardarComentarioOpcional(
-          obtenerComentario(comentarios, indice),
-          foto,
-          autor
-        );
-      } catch (IOException exception) {
+    try {
+        Path uploadDir = Paths.get("uploads");
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+        for (int indice = 0; indice < archivos.size(); indice++) {
+          MultipartFile archivo = archivos.get(indice);
+          if (archivo == null || archivo.isEmpty()) continue;
+          
+            byte[] contenido = archivo.getBytes();
+            if (!esJpeg(archivo.getContentType(), contenido)) {
+                throw new FormatoDeFotoInvalidoException("Solo se permiten imágenes JPEG.");
+            }
+            String uniqueName = UUID.randomUUID().toString() + ".jpg";
+            Path filePath = uploadDir.resolve(uniqueName);
+            Files.write(filePath, contenido);
+            
+            Foto foto = new Foto(filePath.toString(), archivo.getOriginalFilename(), MediaType.IMAGE_JPEG_VALUE, album);
+            fotoRepository.save(foto);
+            comentarioService.guardarComentarioOpcional(
+              obtenerComentario(comentarios, indice),
+              foto,
+              autor
+            );
+        }
+    } catch (IOException exception) {
         throw new IllegalStateException("No se pudo leer la foto.", exception);
-      }
     }
   }
 

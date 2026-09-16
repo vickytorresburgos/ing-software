@@ -11,6 +11,8 @@ import edu.um.umbook.web.form.FotosForm;
 import jakarta.validation.Valid;
 import java.util.Set;
 import org.springframework.http.ResponseEntity;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -125,8 +127,11 @@ public class FotoController {
       idFoto,
       albumService.obtenerAlbumPropio(idAlbum, u.getUsuario())
     );
-    return ResponseEntity.ok()
-      .header("Content-Type", foto.getContentType())
-      .body(foto.getContenido());
+    try {
+      byte[] bytes = Files.readAllBytes(Paths.get(foto.getUrl()));
+      return ResponseEntity.ok().header("Content-Type", foto.getContentType()).body(bytes);
+    } catch (Exception e) {
+      return ResponseEntity.notFound().build();
+    }
   }
 }

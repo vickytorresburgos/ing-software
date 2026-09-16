@@ -5,6 +5,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import edu.um.umbook.security.CustomUserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
@@ -18,9 +19,10 @@ public class PermisoController {
     }
 
     @PostMapping
-    public String updatePermisos(@RequestParam Long objetoId, @RequestParam String tipoObjeto, @RequestParam Long grupoId, @RequestParam(required = false) List<TipoPermiso> permisos, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public String updatePermisos(@RequestParam Long objetoId, @RequestParam String tipoObjeto, @RequestParam Long grupoId, @RequestParam(required = false) List<TipoPermiso> permisos, @AuthenticationPrincipal CustomUserDetails userDetails, RedirectAttributes redirectAttributes) {
         if(permisos == null) permisos = List.of();
         permisoService.asignarPermisos(objetoId, tipoObjeto, grupoId, permisos, userDetails.getUsuario());
-        return "redirect:/groups?permissions_updated";
+        redirectAttributes.addFlashAttribute("success", "Se ha actualizado los permisos del grupo correctamente.");
+        return "redirect:/groups";
     }
 }

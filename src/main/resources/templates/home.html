@@ -14,36 +14,96 @@
   <body>
     <div th:replace="~{base :: nav}"></div>
     <div class="container">
-      <h1>
-        Bienvenido a UMBook, <span th:text="${usuario.nombre}">Usuario</span>!
-      </h1>
+      
+      <div class="row mb-4 align-items-center">
+        <div class="col-md-2 text-center">
+          <img th:if="${usuario.fotoPerfil != null}" th:src="@{/profile/picture/{id}(id=${usuario.id})}" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;"/>
+          <img th:unless="${usuario.fotoPerfil != null}" src="https://ui-avatars.com/api/?name=User" alt="Default Profile" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;"/>
+          <div class="mt-2">
+            <form th:action="@{/profile/picture/delete}" method="post" th:if="${usuario.fotoPerfil != null}" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+            </form>
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">Subir/Cambiar</button>
+          </div>
+        </div>
+        <div class="col-md-10">
+          <h1>Bienvenido a UMBook, <span th:text="${usuario.nombre}">Usuario</span>!</h1>
+        </div>
+      </div>
+      
+      <!-- Upload Modal -->
+      <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form th:action="@{/profile/picture}" method="post" enctype="multipart/form-data">
+              <div class="modal-header">
+                <h5 class="modal-title">Subir Foto de Perfil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <input type="file" name="file" accept="image/jpeg" class="form-control" required/>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Subir</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <hr />
       <div class="row">
         <div class="col-md-8">
           <h3>Muro</h3>
-          <div class="card mb-3">
+          <div class="card mb-4">
             <div class="card-body">
-              <form>
+              <form th:action="@{/wall/post}" method="post">
                 <div class="mb-3">
                   <textarea
+                    name="contenido"
                     class="form-control"
                     placeholder="Escribe algo en tu muro..."
+                    required
                   ></textarea>
                 </div>
-                <button class="btn btn-primary">Publicar</button>
+                <button type="submit" class="btn btn-primary">Publicar</button>
               </form>
+            </div>
+          </div>
+
+          <div th:if="${comentariosMuro == null or comentariosMuro.isEmpty()}" class="alert alert-secondary">
+            Aún no hay publicaciones en tu muro.
+          </div>
+          
+          <div th:each="com : ${comentariosMuro}" class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-title text-primary" th:text="${com.autor.nombre + ' ' + com.autor.apellido}"></h6>
+              <p class="card-text" th:text="${com.contenido}"></p>
+              <p class="card-text"><small class="text-muted" th:text="${#temporals.format(com.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></small></p>
             </div>
           </div>
         </div>
         <div class="col-md-4">
           <h3>Cumpleaños Próximos</h3>
-          <div class="alert alert-info">
+          
+          <div th:if="${cumpleaneros == null or cumpleaneros.isEmpty()}" class="alert alert-info">
             Ninguno de tus amigos cumple años en los próximos días.
           </div>
+          <ul class="list-group mb-3" th:if="${cumpleaneros != null and !cumpleaneros.isEmpty()}">
+            <li class="list-group-item list-group-item-warning" th:each="c : ${cumpleaneros}">
+              🎂 <span th:text="${c.nombre + ' ' + c.apellido}"></span> - <span th:text="${#temporals.format(c.fechaNacimiento, 'dd/MM')}"></span>
+            </li>
+          </ul>
+
           <h3>Notificaciones</h3>
-          <ul class="list-group">
-            <li class="list-group-item text-muted">
-              No tienes notificaciones.
+          <div th:if="${notificaciones == null or notificaciones.isEmpty()}" class="alert alert-secondary">
+            No tienes notificaciones.
+          </div>
+          <ul class="list-group" th:if="${notificaciones != null and !notificaciones.isEmpty()}">
+            <li class="list-group-item" th:each="notif : ${notificaciones}">
+              <span th:text="${notif.mensaje}"></span>
+              <br/>
+              <small class="text-muted" th:text="${#temporals.format(notif.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></small>
             </li>
           </ul>
         </div>

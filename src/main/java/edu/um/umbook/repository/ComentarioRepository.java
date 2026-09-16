@@ -12,4 +12,5 @@ public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
     Optional<Comentario> findByIdAndFotoAndAutor(Long id, Foto foto, Usuario autor);
     Optional<Comentario> findByIdAndFoto(Long id, Foto foto);
     void deleteByFotoIn(Collection<Foto> fotos);
+    List<Comentario> findByContenidoContainingIgnoreCase(String contenido);
 }

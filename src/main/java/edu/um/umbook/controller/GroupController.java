@@ -7,6 +7,7 @@ import edu.um.umbook.security.CustomUserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
@@ -30,9 +31,14 @@ public class GroupController {
     }
     
     @PostMapping
-    public String createGroup(@RequestParam String nombre, @RequestParam String descripcion, @RequestParam(required = false) List<Long> amigosIds, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public String createGroup(@RequestParam String nombre, @RequestParam String descripcion, @RequestParam(required = false) List<Long> amigosIds, @AuthenticationPrincipal CustomUserDetails userDetails, RedirectAttributes redirectAttributes) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "El nombre de grupo de amigos ingresado es inválido y debe probar con uno distinto.");
+            return "redirect:/groups";
+        }
         if(amigosIds == null) amigosIds = List.of();
         groupService.crearGrupo(nombre, descripcion, amigosIds, userDetails.getUsuario());
-        return "redirect:/groups?created";
+        redirectAttributes.addFlashAttribute("success", "Se ha creado el grupo correctamente.");
+        return "redirect:/groups";
     }
 }
