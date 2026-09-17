@@ -22,9 +22,6 @@ public class GrupoAmigos {
         inverseJoinColumns = @JoinColumn(name = "amigo_id"))
     private List<Amigo> miembros = new ArrayList<>();
     
-    @OneToMany(mappedBy = "grupo")
-    private List<Permiso> permisos = new ArrayList<>();
-    
     public GrupoAmigos() {}
 
     public Long getId() { return this.id; }
@@ -41,7 +38,4 @@ public class GrupoAmigos {
     
     public List<Amigo> getMiembros() { return this.miembros; }
     public void setMiembros(List<Amigo> miembros) { this.miembros = miembros; }
-    
-    public List<Permiso> getPermisos() { return this.permisos; }
-    public void setPermisos(List<Permiso> permisos) { this.permisos = permisos; }
 }

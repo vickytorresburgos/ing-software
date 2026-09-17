@@ -31,7 +31,6 @@ public class DataInitializer {
         AmigoRepository amigoRepository,
         SolicitudAmistadRepository solicitudRepository,
         GrupoAmigosRepository grupoRepository,
-        PermisoRepository permisoRepository,
         AlbumRepository albumRepository,
         FotoRepository fotoRepository,
         ComentarioRepository comentarioRepository,
@@ -154,16 +153,12 @@ public class DataInitializer {
                 familia.setUsuario(tadeo);
                 grupoRepository.save(familia);
                 
-                // Permissions example
-                Permiso p = new Permiso();
-                p.setGrupo(cercanos);
-                p.setTipoObjeto("muro");
-                p.setObjetoId(tadeo.getId());
-                p.setPermiso(TipoPermiso.COMENTAR);
-                permisoRepository.save(p);
+                // Set permissions to wall using the user entity
+                tadeo.getGruposConPermisoEnMuro().add(cercanos);
+                usuarioRepository.save(tadeo);
                 
                 // NOTIFICATION: Permisos actualizados (Diagrama-Secuencia-Configurar-Permisos.md)
-                crearNotificacion(notificacionRepository, victoria, "Permisos actualizados en el grupo Amigos Cercanos: COMENTAR");
+                crearNotificacion(notificacionRepository, victoria, "Permisos actualizados en el grupo Amigos Cercanos");
             }
             
             // Wall comments

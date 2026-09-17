@@ -1,5 +1,7 @@
 package edu.um.umbook.controller;
 import edu.um.umbook.model.Usuario;
+import edu.um.umbook.model.GrupoAmigos;
+import edu.um.umbook.repository.UsuarioRepository;
 import edu.um.umbook.service.GroupService;
 import edu.um.umbook.service.FriendService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,10 +18,12 @@ public class GroupController {
     
     private final GroupService groupService;
     private final FriendService friendService;
+    private final UsuarioRepository usuarioRepository;
     
-    public GroupController(GroupService groupService, FriendService friendService) {
+    public GroupController(GroupService groupService, FriendService friendService, UsuarioRepository usuarioRepository) {
         this.groupService = groupService;
         this.friendService = friendService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @GetMapping
@@ -39,6 +43,23 @@ public class GroupController {
         if(amigosIds == null) amigosIds = List.of();
         groupService.crearGrupo(nombre, descripcion, amigosIds, userDetails.getUsuario());
         redirectAttributes.addFlashAttribute("success", "Se ha creado el grupo correctamente.");
+        return "redirect:/groups";
+    }
+
+    @PostMapping("/{id}/wall-permission")
+    public String toggleWallPermission(@PathVariable Long id, @RequestParam boolean allow, @AuthenticationPrincipal CustomUserDetails userDetails, RedirectAttributes redirectAttributes) {
+        Usuario me = userDetails.getUsuario();
+        GrupoAmigos grupo = groupService.getGruposDeUsuario(me).stream().filter(g -> g.getId().equals(id)).findFirst().orElse(null);
+        if(grupo != null) {
+            Usuario dbMe = usuarioRepository.findById(me.getId()).get();
+            if (allow && !dbMe.getGruposConPermisoEnMuro().contains(grupo)) {
+                dbMe.getGruposConPermisoEnMuro().add(grupo);
+            } else if (!allow) {
+                dbMe.getGruposConPermisoEnMuro().remove(grupo);
+            }
+            usuarioRepository.save(dbMe);
+            redirectAttributes.addFlashAttribute("success", "Permisos de muro actualizados para el grupo " + grupo.getNombre());
+        }
         return "redirect:/groups";
     }
 }
